@@ -176,7 +176,163 @@ mycursor.execute("select year, count(year) from entries group by year order by y
 total_entries_temp = mycursor.fetchall()
 for row in total_entries_temp:
     total_entries.append(row[1])
-print(championship_doubles)
+
+total_unique_categories_years = []
+total_unique_categories_labels = []
+total_unique_categories_data =[]
+mycursor.execute("select year, category, count(category) from (select distinct distinct name, year, category from entries order by name) as unique_shooters group by category, year order by year desc, category")
+total_unique_temp = mycursor.fetchall()
+for row in total_unique_temp:
+    total_unique_categories_years.append(row[0])
+    total_unique_categories_labels.append(row[1])
+    total_unique_categories_data.append(row[2])
+df_categories = pd.DataFrame({"Year": total_unique_categories_years, "Category": total_unique_categories_labels, "Counts": total_unique_categories_data})
+df_categories_pivot= df_categories.pivot(index="Year", columns="Category", values="Counts")
+
+total_unique_aggregate_categories_years = []
+total_unique_aggregate_categories_labels = []
+total_unique_aggregate_categories_data =[]
+mycursor.execute("select year, aggregate_category, count(aggregate_category) from (select distinct distinct name, year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries order by name) as unique_shooters group by aggregate_category, year order by year desc, aggregate_category")
+total_unique_aggregate_temp = mycursor.fetchall()
+for row in total_unique_aggregate_temp:
+    total_unique_aggregate_categories_years.append(row[0])
+    total_unique_aggregate_categories_labels.append(row[1])
+    total_unique_aggregate_categories_data.append(row[2])
+df_categories_aggregate = pd.DataFrame({"Year": total_unique_aggregate_categories_years, "Category": total_unique_aggregate_categories_labels, "Counts": total_unique_aggregate_categories_data})
+df_categories_aggregate_pivot= df_categories_aggregate.pivot(index="Year", columns="Category", values="Counts")
+
+
+
+championship_singles_unique_category = []
+championship_singles_unique_categories_years = []
+championship_singles_unique_categories_labels = []
+championship_singles_unique_categories_data =[]
+first = True
+championship_singles_unique_category_query = ""
+for row in championship_singles_events:
+    if first:
+        first = False
+        #(select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)
+        championship_singles_unique_category_query = "(select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+    else:
+        championship_singles_unique_category_query += " union all (select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+mycursor.execute(championship_singles_unique_category_query)
+championship_singles_unique_category_temp = mycursor.fetchall()
+for row in championship_singles_unique_category_temp:
+    championship_singles_unique_categories_years.append(row[0])
+    championship_singles_unique_categories_labels.append(row[1])
+    championship_singles_unique_categories_data.append(row[2])
+df_championship_singles_categories = pd.DataFrame({"Year": championship_singles_unique_categories_years, "Category": championship_singles_unique_categories_labels, "Counts": championship_singles_unique_categories_data})
+df_championship_singles_categories_pivot= df_championship_singles_categories.pivot(index="Year", columns="Category", values="Counts")
+
+championship_singles_aggregate_category = []
+championship_singles_aggregate_categories_years = []
+championship_singles_aggregate_categories_labels = []
+championship_singles_aggregate_categories_data =[]
+first = True
+championship_singles_aggregate_category_query = ""
+for row in championship_singles_events:
+    if first:
+        first = False
+        championship_singles_aggregate_category_query = "(select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+    else:
+        championship_singles_aggregate_category_query += " union all (select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+mycursor.execute(championship_singles_aggregate_category_query)
+championship_singles_aggregate_category_temp = mycursor.fetchall()
+for row in championship_singles_aggregate_category_temp:
+    championship_singles_aggregate_categories_years.append(row[0])
+    championship_singles_aggregate_categories_labels.append(row[1])
+    championship_singles_aggregate_categories_data.append(row[2])
+df_championship_singles_aggregate_categories = pd.DataFrame({"Year": championship_singles_aggregate_categories_years, "Category": championship_singles_aggregate_categories_labels, "Counts": championship_singles_aggregate_categories_data})
+df_championship_singles_aggregate_categories_pivot= df_championship_singles_aggregate_categories.pivot(index="Year", columns="Category", values="Counts")
+
+championship_handicap_unique_category = []
+championship_handicap_unique_categories_years = []
+championship_handicap_unique_categories_labels = []
+championship_handicap_unique_categories_data =[]
+first = True
+aggregated_championship_handicap_unique_category_query = ""
+for row in championship_handicap_events:
+    if first:
+        first = False
+        aggregated_championship_handicap_unique_category_query = "(select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+    else:
+        aggregated_championship_handicap_unique_category_query += " union all (select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+mycursor.execute(aggregated_championship_handicap_unique_category_query)
+aggregated_championship_handicap_unique_category_temp = mycursor.fetchall()
+for row in aggregated_championship_handicap_unique_category_temp:
+    championship_handicap_unique_categories_years.append(row[0])
+    championship_handicap_unique_categories_labels.append(row[1])
+    championship_handicap_unique_categories_data.append(row[2])
+df_championship_handicap_categories = pd.DataFrame({"Year": championship_handicap_unique_categories_years, "Category": championship_handicap_unique_categories_labels, "Counts": championship_handicap_unique_categories_data})
+df_championship_handicap_categories_pivot= df_championship_handicap_categories.pivot(index="Year", columns="Category", values="Counts")
+
+championship_handicap_aggregate_category = []
+championship_handicap_aggregate_categories_years = []
+championship_handicap_aggregate_categories_labels = []
+championship_handicap_aggregate_categories_data =[]
+first = True
+championship_handicap_aggregate_category_query = ""
+for row in championship_handicap_events:
+    if first:
+        first = False
+        championship_handicap_aggregate_category_query = "(select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+    else:
+        championship_handicap_aggregate_category_query += " union all (select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+mycursor.execute(championship_handicap_aggregate_category_query)
+championship_handicap_aggregate_category_temp = mycursor.fetchall()
+for row in championship_handicap_aggregate_category_temp:
+    championship_handicap_aggregate_categories_years.append(row[0])
+    championship_handicap_aggregate_categories_labels.append(row[1])
+    championship_handicap_aggregate_categories_data.append(row[2])
+df_championship_handicap_aggregate_categories = pd.DataFrame({"Year": championship_handicap_aggregate_categories_years, "Category": championship_handicap_aggregate_categories_labels, "Counts": championship_handicap_aggregate_categories_data})
+df_championship_handicap_aggregate_categories_pivot= df_championship_handicap_aggregate_categories.pivot(index="Year", columns="Category", values="Counts")
+
+
+
+championship_doubles_unique_category = []
+championship_doubles_unique_categories_years = []
+championship_doubles_unique_categories_labels = []
+championship_doubles_unique_categories_data =[]
+first = True
+aggregated_championship_doubles_unique_category_query = ""
+for row in championship_doubles_events:
+    if first:
+        first = False
+        aggregated_championship_doubles_unique_category_query = "(select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+    else:
+        aggregated_championship_doubles_unique_category_query += " union all (select year, category, count(category) from (select year, category from entries where year={1} and event_number={0}) as unique_shooters group by category order by category)".format(row[1], row[0])
+mycursor.execute(aggregated_championship_doubles_unique_category_query)
+aggregated_championship_doubles_unique_category_temp = mycursor.fetchall()
+for row in aggregated_championship_doubles_unique_category_temp:
+    championship_doubles_unique_categories_years.append(row[0])
+    championship_doubles_unique_categories_labels.append(row[1])
+    championship_doubles_unique_categories_data.append(row[2])
+df_championship_doubles_categories = pd.DataFrame({"Year": championship_doubles_unique_categories_years, "Category": championship_doubles_unique_categories_labels, "Counts": championship_doubles_unique_categories_data})
+df_championship_doubles_categories_pivot= df_championship_doubles_categories.pivot(index="Year", columns="Category", values="Counts")
+
+championship_doubles_aggregate_category = []
+championship_doubles_aggregate_categories_years = []
+championship_doubles_aggregate_categories_labels = []
+championship_doubles_aggregate_categories_data =[]
+first = True
+championship_doubles_aggregate_category_query = ""
+for row in championship_doubles_events:
+    if first:
+        first = False
+        championship_doubles_aggregate_category_query = "(select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+    else:
+        championship_doubles_aggregate_category_query += " union all (select year, aggregate_category, count(aggregate_category) from (select year, case when category = \"SJ\" or category=\"JR\" or category=\"JRG\" then \"Youth Category\" when category = \"LD1\" or category=\"LD1\" then \"Lady Category\" when category = \"SBVT\" or category=\"VT\" or category=\"SRVT\" then \"Veteran Category\"  else \"Open\" end as aggregate_category from entries where year={1} and event_number={0}) as unique_shooters group by aggregate_category order by aggregate_category)".format(row[1], row[0])
+mycursor.execute(championship_doubles_aggregate_category_query)
+championship_doubles_aggregate_category_temp = mycursor.fetchall()
+for row in championship_doubles_aggregate_category_temp:
+    championship_doubles_aggregate_categories_years.append(row[0])
+    championship_doubles_aggregate_categories_labels.append(row[1])
+    championship_doubles_aggregate_categories_data.append(row[2])
+df_championship_doubles_aggregate_categories = pd.DataFrame({"Year": championship_doubles_aggregate_categories_years, "Category": championship_doubles_aggregate_categories_labels, "Counts": championship_doubles_aggregate_categories_data})
+df_championship_doubles_aggregate_categories_pivot= df_championship_doubles_aggregate_categories.pivot(index="Year", columns="Category", values="Counts")
+
+
 plt.figure()
 #Figure 1: plot without best fit lines
 plt.plot(years, unique_totals, label="Total Shooters", marker='o', color=total_color)
@@ -447,7 +603,7 @@ plt.savefig("figure{}.png".format(figure))
 figure +=1 
 plt.close()
 
-#Figure 20: championship singles plot with best fit lines
+#Figure 20: Championship singles plot with best fit lines
 plt.figure()
 plt.plot(years, championship_singles, label="Total Shooters", marker='o', color=total_color)
 m, b = np.polyfit(years, championship_singles, 1)
@@ -457,25 +613,25 @@ plt.text(average(years), min(championship_singles), "y = {0:,.{2}f}x + {1:,.{2}f
 plt.xlabel("Year")
 plt.ylabel("# Shooters")
 plt.xticks(years)
-plt.title("Figure {}: Total Championship Singles Shooters With Best Fit Line".format(figure))
+plt.title("Figure {}: Total category_championship Singles Shooters With Best Fit Line".format(figure))
 plt.legend()
 plt.savefig("figure{}.png".format(figure))
 figure +=1 
 plt.close()
 
-#Figure 21: Championship handicap plot without best fit lines
+#Figure 21: category_championship handicap plot without best fit lines
 plt.figure()
 plt.plot(years, championship_handicap, label="Total Shooters", marker='o', color=total_color)
 plt.xlabel("Year")
 plt.ylabel("# Shooters")
 plt.xticks(years)
-plt.title("Figure {}: Total Championship Handicap Shooters".format(figure))
+plt.title("Figure {}: Total category_championship Handicap Shooters".format(figure))
 plt.legend()
 plt.savefig("figure{}.png".format(figure))
 figure +=1 
 plt.close()
 
-#Figure 22: championship handicap plot with best fit lines
+#Figure 22: Championship handicap plot with best fit lines
 plt.figure()
 plt.plot(years, championship_handicap, label="Total Shooters", marker='o', color=total_color)
 m, b = np.polyfit(years, championship_handicap, 1)
@@ -503,7 +659,7 @@ plt.savefig("figure{}.png".format(figure))
 figure +=1 
 plt.close()
 
-#Figure 24: championship doubles plot with best fit lines
+#Figure 24: category_championship doubles plot with best fit lines
 plt.figure()
 plt.plot(years, championship_doubles, label="Total Shooters", marker='o', color=total_color)
 m, b = np.polyfit(years, championship_doubles, 1)
@@ -542,6 +698,102 @@ plt.xlabel("Year")
 plt.ylabel("# Shooters")
 plt.xticks(years)
 plt.title("Figure {}: Total Entries With Best Fit Line".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 27: Total Categories plot with best fit lines
+plt.figure()
+df_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Total Unique Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 28: Aggregated Categories plot with best fit lines
+plt.figure()
+df_categories_aggregate_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Total Unique Aggregated Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 29: Championship Singles Categories plot
+plt.figure()
+df_championship_singles_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Singles Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 29.1: Championship Singles Aggregated Categories plot
+plt.figure()
+df_championship_singles_aggregate_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Singles Aggregated Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 30: Championship Handicap Categories plot
+plt.figure()
+df_championship_handicap_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Handicap Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 30.1: Championship handicap Aggregated Categories plot
+plt.figure()
+df_championship_handicap_aggregate_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Handicap Aggregated Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 31: Championship Doubles Categories plot
+plt.figure()
+df_championship_doubles_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Doubles Category Shooters By Year".format(figure))
+plt.legend()
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close()
+
+#Figure 31.1: Championship doubles Aggregated Categories plot
+plt.figure()
+df_championship_doubles_aggregate_categories_pivot.plot()
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(years)
+plt.title("Figure {}: Championship Doubles Aggregated Category Shooters By Year".format(figure))
 plt.legend()
 plt.savefig("figure{}.png".format(figure))
 figure +=1
