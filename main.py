@@ -708,6 +708,198 @@ for yardage_ in championship_handicap_yardages_labels:
     for row in championship_handicap_yardages_hist_temp:
         temp_list.append(row[0])
     championship_handicap_yardages_hist_scores.append(temp_list)
+
+mycursor.execute("select year, singles, handicap, doubles, total from championship_entries where state='North Dakota' order by year")
+temp_data = mycursor.fetchall()
+temp_year = []
+temp_singles = []
+temp_handicap = []
+temp_doubles = []
+temp_total = []
+for row in temp_data:
+    temp_year.append(row[0])
+    temp_singles.append(row[1])
+    temp_handicap.append(row[2])
+    temp_doubles.append(row[3])
+    temp_total.append(row[4])
+df_extended_years_nd =pd.DataFrame({"Year": temp_year, "Singles": temp_singles, "Handicap": temp_handicap, "Doubles": temp_doubles, "Total": temp_total})
+
+temp_years = []
+temp_states = []
+temp_entries =[]
+mycursor.execute("select year, state, singles from championship_entries where state='North Dakota' or state='Minnesota' or state='South Dakota' or state='Montana' or state='Manitoba' or state='Saskatchewan' order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_states.append(row[1])
+    temp_entries.append(row[2])
+df_extended_years_adjacent_singles = pd.DataFrame({"Year": temp_years, "State": temp_states, "Entries": temp_entries})
+df_extended_years_adjacent_singles_pivot= df_extended_years_adjacent_singles.pivot(index="Year", columns="State", values="Entries")
+temp_averages = df_extended_years_adjacent_singles_pivot.mean(axis=1)
+df_extended_years_adjacent_singles_pivot["Average"] = temp_averages
+
+temp_years = []
+temp_states = []
+temp_entries =[]
+mycursor.execute("select year, state, handicap from championship_entries where state='North Dakota' or state='Minnesota' or state='South Dakota' or state='Montana' or state='Manitoba' or state='Saskatchewan' order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_states.append(row[1])
+    temp_entries.append(row[2])
+df_extended_years_adjacent_handicap = pd.DataFrame({"Year": temp_years, "State": temp_states, "Entries": temp_entries})
+df_extended_years_adjacent_handicap_pivot= df_extended_years_adjacent_handicap.pivot(index="Year", columns="State", values="Entries")
+temp_averages = df_extended_years_adjacent_handicap_pivot.mean(axis=1)
+df_extended_years_adjacent_handicap_pivot["Average"] = temp_averages
+
+temp_years = []
+temp_states = []
+temp_entries =[]
+mycursor.execute("select year, state, doubles from championship_entries where state='North Dakota' or state='Minnesota' or state='South Dakota' or state='Montana' or state='Manitoba' or state='Saskatchewan' order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_states.append(row[1])
+    temp_entries.append(row[2])
+df_extended_years_adjacent_doubles = pd.DataFrame({"Year": temp_years, "State": temp_states, "Entries": temp_entries})
+df_extended_years_adjacent_doubles_pivot= df_extended_years_adjacent_doubles.pivot(index="Year", columns="State", values="Entries")
+temp_averages = df_extended_years_adjacent_doubles_pivot.mean(axis=1)
+df_extended_years_adjacent_doubles_pivot["Average"] = temp_averages
+
+temp_years = []
+temp_states = []
+temp_entries =[]
+mycursor.execute("select year, state, total from championship_entries where state='North Dakota' or state='Minnesota' or state='South Dakota' or state='Montana' or state='Manitoba' or state='Saskatchewan' order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_states.append(row[1])
+    temp_entries.append(row[2])
+df_extended_years_adjacent_total = pd.DataFrame({"Year": temp_years, "State": temp_states, "Entries": temp_entries})
+df_extended_years_adjacent_total_pivot= df_extended_years_adjacent_total.pivot(index="Year", columns="State", values="Entries")
+temp_averages = df_extended_years_adjacent_total_pivot.mean(axis=1)
+df_extended_years_adjacent_total_pivot["Average"] = temp_averages
+
+#todo: remove restriction on 2024 when ATA average book comes out
+temp_years = []
+temp_zones = []
+temp_entries =[]
+mycursor.execute("select year, zone, avg(singles) from (select year, zones.zone, singles from championship_entries INNER JOIN zones on championship_entries.state = zones.state where year != 2024) as zone_mask group by zone, year order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_zones.append(row[1])
+    temp_entries.append(row[2])
+
+df_extended_years_all_singles = pd.DataFrame({"Year": temp_years, "Zone": temp_zones, "Entries": temp_entries})
+df_extended_years_all_singles_pivot= df_extended_years_all_singles.pivot(index="Year", columns="Zone", values="Entries")
+df_extended_years_all_singles_years = temp_years
+mycursor.execute("select year, avg(singles) from championship_entries where year != 2024 group by year order by year")
+temp_data = mycursor.fetchall()
+temp_average = []
+temp_years = []
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_average.append(row[1])
+df_extended_years_all_singles_pivot['Average'] = temp_average
+extended_years_all_singles_pivot_average_years = temp_years
+temp_nd = []
+mycursor.execute("select year, singles from championship_entries where state = 'North Dakota' and year !=2024 order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_nd.append(row[1])
+df_extended_years_all_singles_pivot['North Dakota'] = temp_nd
+
+#todo: remove restriction on 2024 when ATA average book comes out
+temp_years = []
+temp_zones = []
+temp_entries =[]
+mycursor.execute("select year, zone, avg(handicap) from (select year, zones.zone, handicap from championship_entries INNER JOIN zones on championship_entries.state = zones.state where year != 2024) as zone_mask group by zone, year order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_zones.append(row[1])
+    temp_entries.append(row[2])
+
+df_extended_years_all_handicap = pd.DataFrame({"Year": temp_years, "Zone": temp_zones, "Entries": temp_entries})
+df_extended_years_all_handicap_pivot= df_extended_years_all_handicap.pivot(index="Year", columns="Zone", values="Entries")
+df_extended_years_all_handicap_years = temp_years
+mycursor.execute("select year, avg(handicap) from championship_entries where year != 2024 group by year order by year")
+temp_data = mycursor.fetchall()
+temp_average = []
+temp_years = []
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_average.append(row[1])
+df_extended_years_all_handicap_pivot['Average'] = temp_average
+extended_years_all_handicap_pivot_average_years = temp_years
+temp_nd = []
+mycursor.execute("select year, handicap from championship_entries where state = 'North Dakota' and year !=2024 order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_nd.append(row[1])
+df_extended_years_all_handicap_pivot['North Dakota'] = temp_nd
+
+#todo: remove restriction on 2024 when ATA average book comes out
+temp_years = []
+temp_zones = []
+temp_entries =[]
+mycursor.execute("select year, zone, avg(doubles) from (select year, zones.zone, doubles from championship_entries INNER JOIN zones on championship_entries.state = zones.state where year != 2024) as zone_mask group by zone, year order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_zones.append(row[1])
+    temp_entries.append(row[2])
+
+df_extended_years_all_doubles = pd.DataFrame({"Year": temp_years, "Zone": temp_zones, "Entries": temp_entries})
+df_extended_years_all_doubles_pivot= df_extended_years_all_doubles.pivot(index="Year", columns="Zone", values="Entries")
+df_extended_years_all_doubles_years = temp_years
+mycursor.execute("select year, avg(doubles) from championship_entries where year != 2024 group by year order by year")
+temp_data = mycursor.fetchall()
+temp_average = []
+temp_years = []
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_average.append(row[1])
+df_extended_years_all_doubles_pivot['Average'] = temp_average
+extended_years_all_doubles_pivot_average_years = temp_years
+temp_nd = []
+mycursor.execute("select year, doubles from championship_entries where state = 'North Dakota' and year !=2024 order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_nd.append(row[1])
+df_extended_years_all_doubles_pivot['North Dakota'] = temp_nd
+
+#todo: remove restriction on 2024 when ATA average book comes out
+temp_years = []
+temp_zones = []
+temp_entries =[]
+mycursor.execute("select year, zone, avg(total) from (select year, zones.zone, total from championship_entries INNER JOIN zones on championship_entries.state = zones.state where year != 2024) as zone_mask group by zone, year order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_zones.append(row[1])
+    temp_entries.append(row[2])
+
+df_extended_years_all_total = pd.DataFrame({"Year": temp_years, "Zone": temp_zones, "Entries": temp_entries})
+df_extended_years_all_total_pivot= df_extended_years_all_total.pivot(index="Year", columns="Zone", values="Entries")
+df_extended_years_all_total_years = temp_years
+mycursor.execute("select year, avg(total) from championship_entries where year != 2024 group by year order by year")
+temp_data = mycursor.fetchall()
+temp_average = []
+temp_years = []
+for row in temp_data:
+    temp_years.append(row[0])
+    temp_average.append(row[1])
+df_extended_years_all_total_pivot['Average'] = temp_average
+extended_years_all_total_pivot_average_years = temp_years
+temp_nd = []
+mycursor.execute("select year, total from championship_entries where state = 'North Dakota' and year !=2024 order by year")
+temp_data = mycursor.fetchall()
+for row in temp_data:
+    temp_nd.append(row[1])
+df_extended_years_all_total_pivot['North Dakota'] = temp_nd
+
 plt.figure()
 #Figure 1: plot without best fit lines
 plt.plot(years, unique_totals, label="Total Shooters", marker='o', color=total_color)
@@ -1674,4 +1866,265 @@ fig.suptitle("Figure {}: {} Championship Handicap (Event 10) Scores by Yardage".
 fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
+plt.close('all')
+
+#Figure 69: Championship Singles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Singles"], label="Total Shooters", marker='o', color=total_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Singles (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 70: Championship Singles (Extended Years) plot with best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Singles"], label="Total Shooters", marker='o', color=total_color)
+m, b = np.polyfit(df_extended_years_nd["Year"], df_extended_years_nd["Singles"], 1)
+x = np.array(df_extended_years_nd["Year"])
+y = m * x + b
+plt.plot(x, y, color=best_fit_color)
+plt.text(average(df_extended_years_nd["Year"]), min(df_extended_years_nd["Singles"]), "y = {0:,.{2}f}x + {1:,.{2}f}".format(m,b, 1))
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Singles (Per ATA Average Book) \nWith Best Fit Line".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 71: Championship Handicap (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Handicap"], label="Total Shooters", marker='o', color=total_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Handicap (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 72: Championship Handicap (Extended Years) plot with best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Handicap"], label="Total Shooters", marker='o', color=total_color)
+m, b = np.polyfit(df_extended_years_nd["Year"], df_extended_years_nd["Handicap"], 1)
+x = np.array(df_extended_years_nd["Year"])
+y = m * x + b
+plt.plot(x, y, color=best_fit_color)
+plt.text(average(df_extended_years_nd["Year"]), min(df_extended_years_nd["Handicap"]), "y = {0:,.{2}f}x + {1:,.{2}f}".format(m,b, 1))
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Handicap (Per ATA Average Book) \nWith Best Fit Line".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 73: Championship Doubles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Doubles"], label="Total Shooters", marker='o', color=total_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Doubles (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 74: Championship Doubles (Extended Years) plot with best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Doubles"], label="Total Shooters", marker='o', color=total_color)
+m, b = np.polyfit(df_extended_years_nd["Year"], df_extended_years_nd["Doubles"], 1)
+x = np.array(df_extended_years_nd["Year"])
+y = m * x + b
+plt.plot(x, y, color=best_fit_color)
+plt.text(average(df_extended_years_nd["Year"]), min(df_extended_years_nd["Doubles"]), "y = {0:,.{2}f}x + {1:,.{2}f}".format(m,b, 1))
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Entries in Championship Doubles (Per ATA Average Book) \nWith Best Fit Line".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 75: Championship Total (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Total"], label="Total Shooters", marker='o', color=total_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Events (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 76: Championship Total (Extended Years) plot with best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_nd["Total"], label="Total Shooters", marker='o', color=total_color)
+m, b = np.polyfit(df_extended_years_nd["Year"], df_extended_years_nd["Total"], 1)
+x = np.array(df_extended_years_nd["Year"])
+y = m * x + b
+plt.plot(x, y, color=best_fit_color)
+plt.text(average(df_extended_years_nd["Year"]), min(df_extended_years_nd["Total"]), "y = {0:,.{2}f}x + {1:,.{2}f}".format(m,b, 1))
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Events (Per ATA Average Book) \nWith Best Fit Line".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 77: Adjacent State Singles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["South Dakota"], label="South Dakota", marker='o', color="lime")
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["Minnesota"], label="Minnesota", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["Montana"], label="Montana", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["Manitoba"], label="Manitoba", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["Saskatchewan"], label="Saskatchewan", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_singles_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Singles (Per ATA Average Book)\nAdjacent States".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 78: Adjacent State handicap (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["South Dakota"], label="South Dakota", marker='o', color="lime")
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["Minnesota"], label="Minnesota", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["Montana"], label="Montana", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["Manitoba"], label="Manitoba", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["Saskatchewan"], label="Saskatchewan", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_handicap_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Handicap (Per ATA Average Book)\nAdjacent States".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 79: Adjacent State doubles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["South Dakota"], label="South Dakota", marker='o', color="lime")
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["Minnesota"], label="Minnesota", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["Montana"], label="Montana", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["Manitoba"], label="Manitoba", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["Saskatchewan"], label="Saskatchewan", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_doubles_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Doubles (Per ATA Average Book)\nAdjacent States".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 80: Adjacent State total (Extended Years) without best fit lines
+plt.figure()
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["South Dakota"], label="South Dakota", marker='o', color="lime")
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["Minnesota"], label="Minnesota", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["Montana"], label="Montana", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["Manitoba"], label="Manitoba", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["Saskatchewan"], label="Saskatchewan", marker='o')
+plt.plot(df_extended_years_nd["Year"], df_extended_years_adjacent_total_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(df_extended_years_nd["Year"])
+plt.title("Figure {}: Total Entries in Championship Events (Per ATA Average Book)\nAdjacent States".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+
+#Figure 81: All Zones Singles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Central Zone"], label="Central Zone", marker='o', color="lime")
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Western Zone"], label="Western Zone", marker='o')
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Southwestern Zone"], label="Southwestern Zone", marker='o')
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Southern Zone"], label="Southern Zone", marker='o')
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Eastern Zone"], label="Eastern Zone", marker='o', color="gold")
+plt.plot(extended_years_all_singles_pivot_average_years, df_extended_years_all_singles_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(extended_years_all_singles_pivot_average_years)
+plt.title("Figure {}: Average Entries in Singles Championship Events \nBy Zone (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 82: All Zones Singles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Central Zone"], label="Central Zone", marker='o', color="lime")
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Western Zone"], label="Western Zone", marker='o')
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Southwestern Zone"], label="Southwestern Zone", marker='o')
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Southern Zone"], label="Southern Zone", marker='o')
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Eastern Zone"], label="Eastern Zone", marker='o', color="gold")
+plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(extended_years_all_handicap_pivot_average_years)
+plt.title("Figure {}: Average Entries in Handicap Championship Events \nBy Zone (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 83: All Zones doubles (Extended Years) without best fit lines
+plt.figure()
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Central Zone"], label="Central Zone", marker='o', color="lime")
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Western Zone"], label="Western Zone", marker='o')
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Southwestern Zone"], label="Southwestern Zone", marker='o')
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Southern Zone"], label="Southern Zone", marker='o')
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Eastern Zone"], label="Eastern Zone", marker='o', color="gold")
+plt.plot(extended_years_all_doubles_pivot_average_years, df_extended_years_all_doubles_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(extended_years_all_doubles_pivot_average_years)
+plt.title("Figure {}: Average Entries in Doubles Championship Events \nBy Zone (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+
+#Figure 84: All Zones total (Extended Years) without best fit lines
+plt.figure()
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Central Zone"], label="Central Zone", marker='o', color="lime")
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Western Zone"], label="Western Zone", marker='o')
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Southwestern Zone"], label="Southwestern Zone", marker='o')
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Southern Zone"], label="Southern Zone", marker='o')
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Eastern Zone"], label="Eastern Zone", marker='o', color="gold")
+plt.plot(extended_years_all_total_pivot_average_years, df_extended_years_all_total_pivot["Average"], label="Average", marker='o', color=best_fit_color)
+plt.xlabel("Year")
+plt.ylabel("# Shooters")
+plt.xticks(extended_years_all_total_pivot_average_years)
+plt.title("Figure {}: Average Entries in All Championship Events \nBy Zone (Per ATA Average Book)".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
 plt.close('all')
