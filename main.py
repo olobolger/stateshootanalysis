@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 from numpy.ma.extras import average
 import scipy.stats as stats
+import docx
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -14,13 +15,14 @@ mydb = mysql.connector.connect(
 )
 matplotlib.use('TkAgg')
 figure = 1
-years = [2024, 2023, 2022, 2021]
-friday_singles_events = [(2024, 6), (2023, 5), (2022, 5), (2021, 5)]
-friday_handicap_events = [(2024, 7), (2023, 6), (2022, 6), (2021, 6)]
-friday_doubles_events = [(2024, 5), (2023, 7), (2022, 7), (2021, 7)]
-championship_singles_events = [(2024, 8), (2023, 8), (2022, 8), (2021, 8)]
-championship_handicap_events = [(2024, 10), (2023, 10), (2022, 9), (2021, 9)]
-championship_doubles_events = [(2024, 9), (2023, 9), (2022, 7), (2021, 7)]
+table = 1
+years = [2024, 2023, 2022, 2021, 2020]
+friday_singles_events = [(2024, 6), (2023, 5), (2022, 5), (2021, 5), (2020, 6)]
+friday_handicap_events = [(2024, 7), (2023, 6), (2022, 6), (2021, 6), (2020, 7)]
+friday_doubles_events = [(2024, 5), (2023, 7), (2022, 7), (2021, 7), (2020, 5)]
+championship_singles_events = [(2024, 8), (2023, 8), (2022, 8), (2021, 8), (2020, 8)]
+championship_handicap_events = [(2024, 10), (2023, 10), (2022, 9), (2021, 9), (2020, 10)]
+championship_doubles_events = [(2024, 9), (2023, 9), (2022, 7), (2021, 7), (2020,9)]
 
 unique_totals = []
 unique_residents = []
@@ -34,6 +36,8 @@ non_resident_color = "red"
 total_color = "blue"
 best_fit_color = "magenta"
 
+# document = docx.Document()
+# document.add_paragraph(str(years[0]) + "Summary Tables")
 for year in years:
     mycursor.execute("select count(name) as name_count from (select distinct name from entries where year=%s) as names",
                      (year, ))
@@ -2128,3 +2132,5 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+
+#document.save("tables.docx")
