@@ -6,6 +6,11 @@ import numpy as np
 from numpy.ma.extras import average
 import scipy.stats as stats
 import docx
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.shared import Pt
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.table import _Cell
 
 mydb = mysql.connector.connect(
     host="localhost",
@@ -35,6 +40,113 @@ resident_color = "lime"
 non_resident_color = "red"
 total_color = "blue"
 best_fit_color = "magenta"
+
+
+def set_cell_border(cell: _Cell, **kwargs):
+    """
+    Set cell`s border
+    Usage:
+
+    set_cell_border(
+        cell,
+        top={"sz": 12, "val": "single", "color": "#FF0000", "space": "0"},
+        bottom={"sz": 12, "color": "#00FF00", "val": "single"},
+        start={"sz": 24, "val": "dashed", "shadow": "true"},
+        end={"sz": 12, "val": "dashed"},
+    )
+    """
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+
+    # check for tag existnace, if none found, then create one
+    tcBorders = tcPr.first_child_found_in("w:tcBorders")
+    if tcBorders is None:
+        tcBorders = OxmlElement('w:tcBorders')
+        tcPr.append(tcBorders)
+
+    # list over all available tags
+    for edge in ('start', 'top', 'end', 'bottom', 'insideH', 'insideV'):
+        edge_data = kwargs.get(edge)
+        if edge_data:
+            tag = 'w:{}'.format(edge)
+
+            # check for tag existnace, if none found, then create one
+            element = tcBorders.find(qn(tag))
+            if element is None:
+                element = OxmlElement(tag)
+                tcBorders.append(element)
+
+            # looks like order of attributes is important
+            for key in ["sz", "val", "color", "space", "shadow"]:
+                if key in edge_data:
+                    element.set(qn('w:{}'.format(key)), str(edge_data[key]))
+
+def merge_row(table, row, columns):
+    row = table.rows[row]
+    cells_to_merge = row.cells[0:columns]
+    merged_cell = cells_to_merge[0]
+    merged_cell.merge(cells_to_merge[len(cells_to_merge) - 1])
+
+def add_table(doc, data_frame, table_num, title, source):
+    doc.add_paragraph()
+    rows = len(data_frame.index) + 4
+    columns = len(data_frame.columns)
+    doc_table = doc.add_table(rows, columns)
+    #table number
+    merge_row(doc_table, 0, columns)
+    doc_table.cell(0, 0).text = "Table {}".format(table_num)
+    table_number_run = doc_table.cell(0,0).paragraphs[0].runs[0]
+    table_number_run.font.name = "Times New Roman"
+    table_number_run.font.size = Pt(12)
+    table_number_run.font.bold = True
+    #table_title
+    merge_row(doc_table, 1, columns)
+    doc_table.cell(1, 0).text = title.title()
+    title_run = doc_table.cell(1, 0).paragraphs[0].runs[0]
+    title_run.font.name = "Times New Roman"
+    title_run.font.italic = True
+    title_run.font.size = Pt(12)
+    set_cell_border(doc_table.cell(1,0), bottom={"sz": 12, "val": "single", "color": "#000000", "space": "0"})
+    #column headings
+    headings = data_frame.columns.tolist()
+    heading_counter = 0
+    for heading in headings:
+        cell = doc_table.cell(2, heading_counter)
+        cell.text = heading
+        paragraph = doc_table.cell(2, heading_counter).paragraphs[0]
+        paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        run = paragraph.runs[0]
+        run.font.name = "Times New Roman"
+        run.font.size = Pt(12)
+        run.font.bold = True
+        heading_counter += 1
+    #data
+    for index, row in data_frame.iterrows():
+        for column in range(columns):
+            cell = doc_table.cell(index + 3, column)
+            cell.text = str(row.iloc[column])
+            paragraph = doc_table.cell(index + 3, column).paragraphs[0]
+            paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            run = paragraph.runs[0]
+            run.font.name = "Times New Roman"
+            run.font.size = Pt(12)
+    #source
+    merge_row(doc_table, rows-1, columns)
+    set_cell_border(doc_table.cell(rows-1, 0), top={"sz": 12, "val": "single", "color": "#000000", "space": "0"})
+    source_cell = doc_table.cell(rows-1, 0)
+    source_paragraph = source_cell.paragraphs[0]
+    source_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    source_run_1 = source_paragraph.add_run()
+    source_run_1.font.name = "Times New Roman"
+    source_run_1.font.size = Pt(12)
+    source_run_1.italic = True
+    source_run_1.text = "Source: "
+    source_run_2 = source_paragraph.add_run()
+    source_run_2.font.name = "Times New Roman"
+    source_run_2.font.size = Pt(12)
+    source_run_2.italic = False
+    source_run_2.text = source
+
 
 # document = docx.Document()
 # document.add_paragraph(str(years[0]) + "Summary Tables")
