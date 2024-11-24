@@ -148,8 +148,9 @@ def add_table(doc, data_frame, table_num, title, source):
     source_run_2.text = source
 
 
-# document = docx.Document()
-# document.add_paragraph(str(years[0]) + "Summary Tables")
+document = docx.Document()
+
+#queries
 for year in years:
     mycursor.execute("select count(name) as name_count from (select distinct name from entries where year=%s) as names",
                      (year, ))
@@ -1016,6 +1017,16 @@ for row in temp_data:
     temp_nd.append(row[1])
 df_extended_years_all_total_pivot['North Dakota'] = temp_nd
 
+average_entries_years = []
+average_entries_counts = []
+mycursor.execute("select year, avg(counts) from (select year, name, count(name) as 'counts' from entries group by name, year) as pool group by year order by year")
+average_entries_temp = mycursor.fetchall()
+for row in average_entries_temp:
+    average_entries_years.append(int(row[0]))
+    average_entries_counts.append(float(row[1]))
+
+#plots and tables
+
 plt.figure()
 #Figure 1: plot without best fit lines
 plt.plot(years, unique_totals, label="Total Shooters", marker='o', color=total_color)
@@ -1028,7 +1039,8 @@ plt.title("Figure {}: Total Unique Shooters by Residency".format(figure))
 plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
-plt.close('all')
+"figure{}.png".format(figure)
+document.add_picture("figure{}.png".format(figure-1))
 
 #figure 2: best fit lines added to Figure 1.
 plt.figure()
@@ -1056,6 +1068,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Residents': list(reversed(unique_residents)), 'Non-Residents': list(reversed(unique_non_residents))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Unique Attendance by Residency", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 3: pie charts with residents vs. non-residents
 for i in range(0, len(years)):
@@ -1067,7 +1085,8 @@ for i in range(0, len(years)):
     plt.title("Figure {}: {} Unique Attendance by Residency".format(figure, years[i]))
     plt.savefig("figure{}.png".format(figure))
     figure +=1
-plt.close('all')
+    plt.close('all')
+    document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 4: pie charts with non-residents by State
 for i in range(0, len(years)):
@@ -1076,7 +1095,8 @@ for i in range(0, len(years)):
     plt.title("Figure {}: {} Unique Non-Resident Attendance by State".format(figure, years[i]))
     plt.savefig("figure{}.png".format(figure))
     figure +=1
-plt.close('all')
+    plt.close('all')
+    document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 5: Youth Event plot without best fit lines
 plt.figure()
@@ -1089,6 +1109,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 6: Youth Event plot with best fit lines
 plt.figure()
@@ -1105,6 +1126,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(youth_event_totals))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Youth Event Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 7: Thursday Singles plot without best fit lines
 plt.figure()
@@ -1117,6 +1144,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 8: Thursday Singles plot with best fit lines
 plt.figure()
@@ -1133,6 +1161,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(thursday_singles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Thursday Singles Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 9: Thursday Handicap plot without best fit lines
 plt.figure()
@@ -1145,6 +1179,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 10: Thursday handicap plot with best fit lines
 plt.figure()
@@ -1161,6 +1196,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(thursday_handicap))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Thursday Handicap Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 11: Thursday Doubles plot without best fit lines
 plt.figure()
@@ -1173,6 +1214,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 12: Thursday doubles plot with best fit lines
 plt.figure()
@@ -1189,6 +1231,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(thursday_doubles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Thursday Doubles Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 13: Friday Singles plot without best fit lines
 plt.figure()
@@ -1201,6 +1249,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 14: Friday singles plot with best fit lines
 plt.figure()
@@ -1217,6 +1266,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(friday_singles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Friday Singles Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 15: Friday handicap plot without best fit lines
 plt.figure()
@@ -1229,6 +1284,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 16: Friday handicap plot with best fit lines
 plt.figure()
@@ -1245,6 +1301,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(friday_handicap))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Friday Handicap Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 17: Friday doubles plot without best fit lines
 plt.figure()
@@ -1257,6 +1319,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 18: Friday doubles plot with best fit lines
 plt.figure()
@@ -1273,6 +1336,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(friday_doubles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Friday Doubles Entries", "Shootscoreboard.com and 2020 3S Data. Note: in 2021 and 2022, the Friday doubles event was also the Championship event.")
+table += 1
 
 #Figure 19: Championship singles plot without best fit lines
 plt.figure()
@@ -1285,6 +1354,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 20: Championship singles plot with best fit lines
 plt.figure()
@@ -1301,6 +1371,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(championship_singles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Singles Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 21: category_championship handicap plot without best fit lines
 plt.figure()
@@ -1313,6 +1389,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 22: Championship handicap plot with best fit lines
 plt.figure()
@@ -1329,6 +1406,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(championship_handicap))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Handicap Entries", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 23: Championship doubles plot without best fit lines
 plt.figure()
@@ -1341,6 +1424,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 24: category_championship doubles plot with best fit lines
 plt.figure()
@@ -1357,6 +1441,12 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(championship_doubles))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Doubles Entries", "Shootscoreboard.com and 2020 3S Data. Note: in 2021 and 2022, the Championship doubles were held on Friday, not Sunday.")
+table += 1
 
 #Figure 25: Total Entries plot without best fit lines
 plt.figure()
@@ -1369,6 +1459,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 26: Total Entries plot with best fit lines
 plt.figure()
@@ -1385,8 +1476,14 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
-#Figure 27: Total Categories plot with best fit lines
+table_dict = {'Years': list(reversed(years)), 'Entries': list(reversed(total_entries))}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Total Entries Across All Events", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
+
+#Figure 27: Total Categories plot
 plt.figure()
 df_categories_pivot.plot()
 plt.xlabel("Year")
@@ -1397,8 +1494,25 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
-#Figure 28: Aggregated Categories plot with best fit lines
+df_categories_pivot.columns.name = None
+table_dict = {'Years': list(reversed(years)),
+              'Open': df_categories_pivot["Open"].values,
+              'SJ': df_categories_pivot["SJ"].values,
+              'JR': df_categories_pivot["JR"].values,
+              'JRG': df_categories_pivot["JRG"].values,
+              'LD1': df_categories_pivot["LD1"].values,
+              'LD2': df_categories_pivot["LD2"].values,
+              'SUBV': df_categories_pivot["SUBV"].values,
+              'VT': df_categories_pivot["VT"].values,
+              'SRVT': df_categories_pivot["SRVT"].values
+              }
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Unique Category Shooters", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
+
+#Figure 28: Aggregated Categories plot
 plt.figure()
 df_categories_aggregate_pivot.plot()
 plt.xlabel("Year")
@@ -1409,6 +1523,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 29: Championship Singles Categories plot
 plt.figure()
@@ -1421,6 +1536,23 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+df_championship_singles_categories_pivot.columns.name = None
+table_dict = {'Years': list(reversed(years)),
+              'Open': df_championship_singles_categories_pivot["Open"].values,
+              'SJ': df_championship_singles_categories_pivot["SJ"].values,
+              'JR': df_championship_singles_categories_pivot["JR"].values,
+              'JRG': df_championship_singles_categories_pivot["JRG"].values,
+              'LD1': df_championship_singles_categories_pivot["LD1"].values,
+              'LD2': df_championship_singles_categories_pivot["LD2"].values,
+              'SUBV': df_championship_singles_categories_pivot["SUBV"].values,
+              'VT': df_championship_singles_categories_pivot["VT"].values,
+              'SRVT': df_championship_singles_categories_pivot["SRVT"].values
+              }
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Singles Category Shooters", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 29.1: Championship Singles Aggregated Categories plot
 plt.figure()
@@ -1433,6 +1565,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 30: Championship Handicap Categories plot
 plt.figure()
@@ -1445,6 +1578,23 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+df_championship_handicap_categories_pivot.columns.name = None
+table_dict = {'Years': list(reversed(years)),
+              'Open': df_championship_handicap_categories_pivot["Open"].values,
+              'SJ': df_championship_handicap_categories_pivot["SJ"].values,
+              'JR': df_championship_handicap_categories_pivot["JR"].values,
+              'JRG': df_championship_handicap_categories_pivot["JRG"].values,
+              'LD1': df_championship_handicap_categories_pivot["LD1"].values,
+              'LD2': df_championship_handicap_categories_pivot["LD2"].values,
+              'SUBV': df_championship_handicap_categories_pivot["SUBV"].values,
+              'VT': df_championship_handicap_categories_pivot["VT"].values,
+              'SRVT': df_championship_handicap_categories_pivot["SRVT"].values
+              }
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Handicap Category Shooters", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 30.1: Championship handicap Aggregated Categories plot
 plt.figure()
@@ -1457,6 +1607,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 31: Championship Doubles Categories plot
 plt.figure()
@@ -1469,6 +1620,23 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+df_championship_doubles_categories_pivot.columns.name = None
+table_dict = {'Years': list(reversed(years)),
+              'Open': df_championship_doubles_categories_pivot["Open"].values,
+              'SJ': df_championship_doubles_categories_pivot["SJ"].values,
+              'JR': df_championship_doubles_categories_pivot["JR"].values,
+              'JRG': df_championship_doubles_categories_pivot["JRG"].values,
+              'LD1': df_championship_doubles_categories_pivot["LD1"].values,
+              'LD2': df_championship_doubles_categories_pivot["LD2"].values,
+              'SUBV': df_championship_doubles_categories_pivot["SUBV"].values,
+              'VT': df_championship_doubles_categories_pivot["VT"].values,
+              'SRVT': df_championship_doubles_categories_pivot["SRVT"].values
+              }
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship doubles Category Shooters", "Shootscoreboard.com and 2020 3S Data.")
+table += 1
 
 #Figure 31.1: Championship doubles Aggregated Categories plot
 plt.figure()
@@ -1481,6 +1649,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 32 Youth Event Categories
 plt.figure()
@@ -1489,6 +1658,7 @@ plt.title("Figure {}: {} Youth Event (Event 1) Shooters by Category".format(figu
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 33 Youth Event Classes
 plt.figure()
@@ -1497,6 +1667,7 @@ plt.title("Figure {}: {} Youth Event (Event 1) Shooters by Class".format(figure,
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 33 Youth Event Category Histogram
 plt.figure()
@@ -1515,6 +1686,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 34 Youth Event Class Histogram
 plt.figure()
@@ -1532,6 +1704,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 35 Thursday Singles Categories
 plt.figure()
@@ -1540,6 +1713,7 @@ plt.title("Figure {}: {} Thursday Singles (Event 2) Shooters by Category".format
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 36 Thursday Singles Classes
 plt.figure()
@@ -1548,6 +1722,7 @@ plt.title("Figure {}: {} Thursday Singles (Event 2) Shooters by Class".format(fi
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 37 Thursday Singles Category Histogram
 plt.figure()
@@ -1565,6 +1740,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 38 Thursday Singles Class Histogram
 plt.figure()
@@ -1582,6 +1758,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 39 Thursday handicap Categories
 plt.figure()
@@ -1590,6 +1767,7 @@ plt.title("Figure {}: {} Thursday Handicap (Event 3) Shooters by Category".forma
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 40 Thursday handicap yardages
 plt.figure()
@@ -1598,6 +1776,7 @@ plt.title("Figure {}: {} Thursday Handicap (Event 3) Shooters by Yardage".format
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 41 Thursday handicap Category Histogram
 plt.figure()
@@ -1615,6 +1794,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 42 Thursday handicap Class Histogram
 plt.figure()
@@ -1632,6 +1812,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 43 Thursday doubles Categories
 plt.figure()
@@ -1640,6 +1821,7 @@ plt.title("Figure {}: {} Thursday Doubles (Event 4) Shooters by Category".format
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 44 Thursday doubles Classes
 plt.figure()
@@ -1648,6 +1830,7 @@ plt.title("Figure {}: {} Thursday Doubles (Event 4) Shooters by Class".format(fi
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 45 Thursday doubles Categories Histograms
 plt.figure()
@@ -1665,6 +1848,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 48 Thursday doubles Class Histogram
 plt.figure()
@@ -1682,6 +1866,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 43 friday doubles Categories
 plt.figure()
@@ -1690,6 +1875,7 @@ plt.title("Figure {}: {} Preliminary Doubles (Event 5) Shooters by Category".for
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 44 friday doubles Classes
 plt.figure()
@@ -1698,6 +1884,7 @@ plt.title("Figure {}: {} Preliminary Doubles (Event 5) Shooters by Class".format
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 45 friday doubles Categories Histograms
 plt.figure()
@@ -1715,6 +1902,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 48 friday doubles Class Histogram
 plt.figure()
@@ -1732,6 +1920,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 49 friday singles Categories
 plt.figure()
@@ -1740,6 +1929,7 @@ plt.title("Figure {}: {} Preliminary Singles (Event 6) Shooters by Category".for
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 50 friday singles Classes
 plt.figure()
@@ -1748,6 +1938,7 @@ plt.title("Figure {}: {} Preliminary Singles (Event 6) Shooters by Class".format
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 51 friday singles Categories Histograms
 plt.figure()
@@ -1765,6 +1956,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 52 friday singles Class Histogram
 plt.figure()
@@ -1782,6 +1974,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 53 friday handicap Categories
 plt.figure()
@@ -1790,6 +1983,7 @@ plt.title("Figure {}: {} Preliminary Handicap (Event 7) Shooters by Category".fo
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 54 friday handicap yardages
 plt.figure()
@@ -1798,6 +1992,7 @@ plt.title("Figure {}: {} Preliminary Handicap (Event 7) Shooters by Yardage".for
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 55 friday handicap Categories Histograms
 plt.figure()
@@ -1815,6 +2010,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 56 friday handicap Class Histogram
 plt.figure()
@@ -1832,6 +2028,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 57 championship singles Categories
 plt.figure()
@@ -1840,6 +2037,7 @@ plt.title("Figure {}: {} Championship Singles (Event 8) Shooters by Category".fo
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 58 championship singles Classes
 plt.figure()
@@ -1848,6 +2046,7 @@ plt.title("Figure {}: {} Championship Singles (Event 8) Shooters by Class".forma
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 59 championship singles Categories Histograms
 plt.figure()
@@ -1865,6 +2064,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 60 championship singles Class Histogram
 plt.figure()
@@ -1882,6 +2082,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 61 championship doubles Categories
 plt.figure()
@@ -1890,6 +2091,7 @@ plt.title("Figure {}: {} Championship Doubles (Event 9) Shooters by Category".fo
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 62 championship doubles Classes
 plt.figure()
@@ -1898,6 +2100,7 @@ plt.title("Figure {}: {} Championship Doubles (Event 9) Shooters by Class".forma
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 63 championship doubles Categories Histograms
 plt.figure()
@@ -1916,6 +2119,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 64 championship doubles Class Histogram
 plt.figure()
@@ -1933,6 +2137,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 65 championship handicap Categories
 plt.figure()
@@ -1941,6 +2146,7 @@ plt.title("Figure {}: {} Preliminary Handicap (Event 10) Shooters by Category".f
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 66 championship handicap yardages
 plt.figure()
@@ -1949,6 +2155,7 @@ plt.title("Figure {}: {} Championship Handicap (Even 10) Shooters by Yardage".fo
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 67 championship handicap Categories Histograms
 plt.figure()
@@ -1966,6 +2173,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 68 championship handicap Class Histogram
 plt.figure()
@@ -1983,6 +2191,7 @@ fig.set_size_inches(8.5,11)
 plt.savefig("figure{}.png".format(figure))
 figure += 1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 69: Championship Singles (Extended Years) without best fit lines
 plt.figure()
@@ -1995,6 +2204,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 70: Championship Singles (Extended Years) plot with best fit lines
 plt.figure()
@@ -2012,6 +2222,15 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'Entries': df_extended_years_nd["Singles"]
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "ND Championship Singles Entries, Extended Years", "ATA Average Books.")
+table += 1
 
 #Figure 71: Championship Handicap (Extended Years) without best fit lines
 plt.figure()
@@ -2024,6 +2243,9 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+
 
 #Figure 72: Championship Handicap (Extended Years) plot with best fit lines
 plt.figure()
@@ -2041,6 +2263,15 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'Entries': df_extended_years_nd["Handicap"]
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "ND Championship Handicap Entries, Extended Years", "ATA Average Books.")
+table += 1
 
 #Figure 73: Championship Doubles (Extended Years) without best fit lines
 plt.figure()
@@ -2053,6 +2284,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 74: Championship Doubles (Extended Years) plot with best fit lines
 plt.figure()
@@ -2070,6 +2302,15 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'Entries': df_extended_years_nd["Doubles"]
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "ND Championship Doubles Entries, Extended Years", "ATA Average Books.")
+table += 1
 
 #Figure 75: Championship Total (Extended Years) without best fit lines
 plt.figure()
@@ -2082,6 +2323,7 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 #Figure 76: Championship Total (Extended Years) plot with best fit lines
 plt.figure()
@@ -2099,6 +2341,15 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'Entries': df_extended_years_nd["Total"]
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "ND Championship Event Total Entries, Extended Years", "ATA Average Books.")
+table += 1
 
 #Figure 77: Adjacent State Singles (Extended Years) without best fit lines
 plt.figure()
@@ -2117,6 +2368,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'North Dakota': df_extended_years_adjacent_singles_pivot["North Dakota"].values,
+    'South Dakota': df_extended_years_adjacent_singles_pivot["South Dakota"].values,
+    'Minnesota': df_extended_years_adjacent_singles_pivot["Minnesota"].values,
+    'Montana': df_extended_years_adjacent_singles_pivot["Montana"].values,
+    'Manitoba': df_extended_years_adjacent_singles_pivot["Manitoba"].values,
+    'Saskatchewan': df_extended_years_adjacent_singles_pivot["Saskatchewan"].values,
+    'Average': df_extended_years_adjacent_singles_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Singles Event Total Entries, Adjacent States", "ATA Average Books.")
+table += 1
 
 #Figure 78: Adjacent State handicap (Extended Years) without best fit lines
 plt.figure()
@@ -2135,6 +2401,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'North Dakota': df_extended_years_adjacent_handicap_pivot["North Dakota"].values,
+    'South Dakota': df_extended_years_adjacent_handicap_pivot["South Dakota"].values,
+    'Minnesota': df_extended_years_adjacent_handicap_pivot["Minnesota"].values,
+    'Montana': df_extended_years_adjacent_handicap_pivot["Montana"].values,
+    'Manitoba': df_extended_years_adjacent_handicap_pivot["Manitoba"].values,
+    'Saskatchewan': df_extended_years_adjacent_handicap_pivot["Saskatchewan"].values,
+    'Average': df_extended_years_adjacent_handicap_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Handicap Event Total Entries, Adjacent States", "ATA Average Books.")
+table += 1
 
 #Figure 79: Adjacent State doubles (Extended Years) without best fit lines
 plt.figure()
@@ -2153,6 +2434,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'North Dakota': df_extended_years_adjacent_doubles_pivot["North Dakota"].values,
+    'South Dakota': df_extended_years_adjacent_doubles_pivot["South Dakota"].values,
+    'Minnesota': df_extended_years_adjacent_doubles_pivot["Minnesota"].values,
+    'Montana': df_extended_years_adjacent_doubles_pivot["Montana"].values,
+    'Manitoba': df_extended_years_adjacent_doubles_pivot["Manitoba"].values,
+    'Saskatchewan': df_extended_years_adjacent_doubles_pivot["Saskatchewan"].values,
+    'Average': df_extended_years_adjacent_doubles_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship doubles Event Total Entries, Adjacent States", "ATA Average Books.")
+table += 1
 
 #Figure 80: Adjacent State total (Extended Years) without best fit lines
 plt.figure()
@@ -2171,7 +2467,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
+table_dict = {
+    'Year': df_extended_years_nd["Year"],
+    'North Dakota': df_extended_years_adjacent_total_pivot["North Dakota"].values,
+    'South Dakota': df_extended_years_adjacent_total_pivot["South Dakota"].values,
+    'Minnesota': df_extended_years_adjacent_total_pivot["Minnesota"].values,
+    'Montana': df_extended_years_adjacent_total_pivot["Montana"].values,
+    'Manitoba': df_extended_years_adjacent_total_pivot["Manitoba"].values,
+    'Saskatchewan': df_extended_years_adjacent_total_pivot["Saskatchewan"].values,
+    'Average': df_extended_years_adjacent_total_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Events Total Entries, Adjacent States", "ATA Average Books.")
+table += 1
 
 #Figure 81: All Zones Singles (Extended Years) without best fit lines
 plt.figure()
@@ -2190,8 +2500,23 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
-#Figure 82: All Zones Singles (Extended Years) without best fit lines
+table_dict = {
+    'Year': extended_years_all_singles_pivot_average_years,
+    'North Dakota': df_extended_years_all_singles_pivot["North Dakota"].values,
+    'Central Zone': df_extended_years_all_singles_pivot["Central Zone"].values,
+    'Western Zone': df_extended_years_all_singles_pivot["Western Zone"].values,
+    'Southwestern Zone': df_extended_years_all_singles_pivot["Southwestern Zone"].values,
+    'Southern Zone': df_extended_years_all_singles_pivot["Southern Zone"].values,
+    'Eastern Zone': df_extended_years_all_singles_pivot["Eastern Zone"].values,
+    'Average': df_extended_years_all_singles_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Singles Entries, By Zone", "ATA Average Books.")
+table += 1
+
+#Figure 82: All Zones Handicap (Extended Years) without best fit lines
 plt.figure()
 plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["North Dakota"], label="North Dakota", marker='o', color=total_color)
 plt.plot(extended_years_all_handicap_pivot_average_years, df_extended_years_all_handicap_pivot["Central Zone"], label="Central Zone", marker='o', color="lime")
@@ -2208,6 +2533,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': extended_years_all_handicap_pivot_average_years,
+    'North Dakota': df_extended_years_all_handicap_pivot["North Dakota"].values,
+    'Central Zone': df_extended_years_all_handicap_pivot["Central Zone"].values,
+    'Western Zone': df_extended_years_all_handicap_pivot["Western Zone"].values,
+    'Southwestern Zone': df_extended_years_all_handicap_pivot["Southwestern Zone"].values,
+    'Southern Zone': df_extended_years_all_handicap_pivot["Southern Zone"].values,
+    'Eastern Zone': df_extended_years_all_handicap_pivot["Eastern Zone"].values,
+    'Average': df_extended_years_all_handicap_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Handicap Entries, By Zone", "ATA Average Books.")
+table += 1
 
 #Figure 83: All Zones doubles (Extended Years) without best fit lines
 plt.figure()
@@ -2226,6 +2566,21 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': extended_years_all_doubles_pivot_average_years,
+    'North Dakota': df_extended_years_all_doubles_pivot["North Dakota"].values,
+    'Central Zone': df_extended_years_all_doubles_pivot["Central Zone"].values,
+    'Western Zone': df_extended_years_all_doubles_pivot["Western Zone"].values,
+    'Southwestern Zone': df_extended_years_all_doubles_pivot["Southwestern Zone"].values,
+    'Southern Zone': df_extended_years_all_doubles_pivot["Southern Zone"].values,
+    'Eastern Zone': df_extended_years_all_doubles_pivot["Eastern Zone"].values,
+    'Average': df_extended_years_all_doubles_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Doubles Entries, By Zone", "ATA Average Books.")
+table += 1
 
 #Figure 84: All Zones total (Extended Years) without best fit lines
 plt.figure()
@@ -2244,5 +2599,58 @@ plt.legend(loc='upper left')
 plt.savefig("figure{}.png".format(figure))
 figure +=1
 plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
-#document.save("tables.docx")
+table_dict = {
+    'Year': extended_years_all_total_pivot_average_years,
+    'North Dakota': df_extended_years_all_total_pivot["North Dakota"].values,
+    'Central Zone': df_extended_years_all_total_pivot["Central Zone"].values,
+    'Western Zone': df_extended_years_all_total_pivot["Western Zone"].values,
+    'Southwestern Zone': df_extended_years_all_total_pivot["Southwestern Zone"].values,
+    'Southern Zone': df_extended_years_all_total_pivot["Southern Zone"].values,
+    'Eastern Zone': df_extended_years_all_total_pivot["Eastern Zone"].values,
+    'Average': df_extended_years_all_total_pivot["Average"].values
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Championship Total Championship Entries, By Zone", "ATA Average Books.")
+table += 1
+
+#Figure 85: average entries without best fit lines
+plt.plot(average_entries_years, average_entries_counts, label="Average Entries", marker='o', color=total_color)
+plt.xlabel("Year")
+plt.ylabel("Average # Entries")
+plt.xticks(years)
+plt.title("Figure {}: Average Number of Entries For Each Shooter By Year".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+"figure{}.png".format(figure)
+document.add_picture("figure{}.png".format(figure-1))
+
+#figure 86: average entries with best fit lines.
+plt.figure()
+plt.plot(average_entries_years, average_entries_counts, label="Average Entries", marker='o', color=total_color)
+m, b = np.polyfit(average_entries_years, average_entries_counts, 1)
+x = np.array(average_entries_years)
+y = m * x + b
+plt.plot(x, y, color=best_fit_color)
+plt.text(average(average_entries_years), 4.5, "y = {0:,.{2}f}x + {1:,.{2}f}".format(m,b, 1))
+plt.xlabel("Year")
+plt.ylabel("Average # Entries")
+plt.xticks(years)
+plt.title("Figure {}: Average Number of Entries For Each Shooter By Year\n With Best Fit Lines".format(figure))
+plt.legend(loc='upper left')
+plt.savefig("figure{}.png".format(figure))
+figure +=1
+plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
+
+table_dict = {
+    'Year': average_entries_years,
+    'Average Entries': average_entries_counts,
+}
+table_data_frame = pd.DataFrame(table_dict)
+add_table(document, table_data_frame, table, "Average Entries For Each Shooter By Year", "Shootscoreboard.com and 2020 3S data.")
+table += 1
+
+document.save("tables.docx")
