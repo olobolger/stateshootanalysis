@@ -1025,6 +1025,15 @@ for row in average_entries_temp:
     average_entries_years.append(int(row[0]))
     average_entries_counts.append(float(row[1]))
 
+average_entries_hist_counts = {}
+for year in years:
+    mycursor.execute("select year, count(name) from entries where year={} group by name, year order by year".format(year))
+    average_entries_hist_counts_temp = mycursor.fetchall()
+    temp_list = []
+    for row in average_entries_hist_counts_temp:
+        temp_list.append(row[1])
+    average_entries_hist_counts.update({str(year): temp_list})
+number = 2024
 #plots and tables
 
 plt.figure()
@@ -2652,5 +2661,18 @@ table_dict = {
 table_data_frame = pd.DataFrame(table_dict)
 add_table(document, table_data_frame, table, "Average Entries For Each Shooter By Year", "Shootscoreboard.com and 2020 3S data.")
 table += 1
+
+#Figure 87 Shooter Entries Histogram
+plt.figure()
+fig, axs = plt.subplots(len(years), 1, sharex=True)
+for i in range(0,len(years)):
+    axs[i].hist(average_entries_hist_counts[str(years[i])], alpha=0.5, density=True, bins=10, label="{0}: \u03BC = {1:.1f}, \u03C3 = {2:.1f}".format(years[i], np.mean(average_entries_hist_counts[str(years[i])]), np.std(average_entries_hist_counts[str(years[i])])))
+    axs[i].legend(loc='upper left')
+fig.suptitle("Figure {}: Number of Entries by Shooter".format(figure))
+fig.set_size_inches(8.5,11)
+plt.savefig("figure{}.png".format(figure))
+figure += 1
+plt.close('all')
+document.add_picture("figure{}.png".format(figure-1))
 
 document.save("tables.docx")
